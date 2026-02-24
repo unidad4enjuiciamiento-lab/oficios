@@ -359,6 +359,43 @@
             font-size: 0.75rem;
         }
 
+        /* Edit Search Results */
+        .search-results-list {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 1rem;
+            width: 100%;
+            z-index: 50;
+        }
+
+        .result-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .result-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .result-item strong {
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+        }
+
+        .result-item span {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
         /* Modal simple para imagen */
         #imgModal {
             position: fixed;
@@ -491,10 +528,13 @@
                 style="margin-bottom: 1.5rem; border-color: var(--accent-primary); border-width: 2px;">
                 <h3 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent-primary);">🔍 BUSCAR PARA
                     MODIFICAR</h3>
-                <div style="display: flex; gap: 1rem;">
-                    <input type="text" id="editSearchInput"
-                        placeholder="Ingresa No. de Carpeta o de Oficio para buscar..." style="flex: 1;">
-                    <button class="primary-btn" onclick="searchForEdit()">Buscar Registro</button>
+                <div style="display: flex; gap: 1rem; flex-direction: column;">
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="text" id="editSearchInput" oninput="searchForEdit()"
+                            placeholder="Busca por Carpeta, Oficio, Nombre o cualquier dato..." style="flex: 1;">
+                        <button class="primary-btn" onclick="searchForEdit()">Buscar</button>
+                    </div>
+                    <div id="editSearchResults" class="search-results-list"></div>
                 </div>
             </div>
 
@@ -842,24 +882,62 @@
 
         function searchForEdit() {
             const term = document.getElementById('editSearchInput').value.trim().toLowerCase();
-            if (!term) return alert("Ingresa un Número de Carpeta o de Oficio para buscar.");
+            const resultsContainer = document.getElementById('editSearchResults');
 
-            const item = db.find(item =>
-                (item.carpeta && item.carpeta.toLowerCase() === term) ||
-                (item.oficio && item.oficio.toLowerCase() === term)
-            );
+            if (!term) {
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            const results = db.filter(item => {
+                const searchableFields = [
+                    item.carpeta, item.oficio, item.dependencia, item.remitente,
+                    item.notas, item.nombreInterno, item.haceTramite, item.tipoDoc
+                ];
+                return searchableFields.some(v => String(v || '').toLowerCase().includes(term));
+            });
+
+            if (results.length > 0) {
+                resultsContainer.innerHTML = '';
+                results.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.onclick = () => loadRecordForEdit(item.id);
+
+                    const topText = item.carpeta + (item.oficio ? ` | ${item.oficio}` : '');
+                    const subText = `${item.tipoDoc || 'Oficio'} - ${item.dependencia || 'Sin dep.'} - ${item.nombreInterno || item.remitente || ''}`;
+
+                    div.innerHTML = `
+                        <strong>${topText}</strong>
+                        <span>${subText}</span>
+                    `;
+                    resultsContainer.appendChild(div);
+                });
+                resultsContainer.style.display = 'block';
+            } else {
+                resultsContainer.innerHTML = '<div class="result-item" style="cursor: default;"><span>No se encontraron resultados</span></div>';
+                resultsContainer.style.display = 'block';
+            }
+        }
+        window.searchForEdit = searchForEdit;
+
+        function loadRecordForEdit(id) {
+            const item = db.find(i => i.id === id);
+            const resultsContainer = document.getElementById('editSearchResults');
+            resultsContainer.style.display = 'none';
+            document.getElementById('editSearchInput').value = item.carpeta || item.oficio || "";
 
             if (item) {
-                document.getElementById('editIndex').value = item.id; // Guardamos el ID de Firestore
-                document.getElementById('regCarpeta').value = item.carpeta;
+                document.getElementById('editIndex').value = item.id;
+                document.getElementById('regCarpeta').value = item.carpeta || "";
                 document.getElementById('regTipoDoc').value = item.tipoDoc || "Oficio";
                 handleTipoDocChange();
 
                 document.getElementById('regOficio').value = item.oficio || "";
                 document.getElementById('regNombreInterno').value = item.nombreInterno || "";
-                document.getElementById('regDependencia').value = item.dependencia;
-                document.getElementById('regRemitente').value = item.remitente;
-                document.getElementById('regFechaRec').value = item.fechaRec;
+                document.getElementById('regDependencia').value = item.dependencia || "";
+                document.getElementById('regRemitente').value = item.remitente || "";
+                document.getElementById('regFechaRec').value = item.fechaRec || "";
                 document.getElementById('regFechaEnt').value = item.fechaEnt || "";
                 document.getElementById('regRecibeAcuse').value = item.recibeAcuse || "";
                 document.getElementById('regHaceTramite').value = item.haceTramite || "";
@@ -879,12 +957,12 @@
                 document.getElementById('submitBtn').textContent = "Actualizar en la Nube";
                 document.getElementById('deleteBtn').style.display = 'block';
                 document.getElementById('cancelEditBtn').style.display = 'block';
-                alert("Registro cargado desde la nube.");
-            } else {
-                alert("No se encontró ningún registro.");
+
+                // Scroll suave al formulario
+                document.getElementById('registerForm').scrollIntoView({ behavior: 'smooth' });
             }
         }
-        window.searchForEdit = searchForEdit;
+        window.loadRecordForEdit = loadRecordForEdit;
 
         function resetForm() {
             document.getElementById('registerForm').reset();
