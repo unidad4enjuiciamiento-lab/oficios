@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrega de Oficios y Notificaciones - Unidad 4</title>
+    <style>
+        :root {
+            --bg-body: #0a0f1e;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-primary: #3b82f6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --card-radius: 1.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-body);
+            background-image: radial-gradient(circle at 0% 0%, #1e293b 0%, #0a101f 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 200px 1fr;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .nav-btn {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 1rem;
+            color: var(--text-dim);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-btn.active {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .top-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .top-header h1 {
+            font-size: 1.75rem;
+            background: linear-gradient(90deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .top-header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Stats & UI Components */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.25rem;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--accent-success);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--accent-warning);
+        }
+
+        .stat-card span {
+            display: block;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card strong {
+            font-size: 1.75rem;
+        }
+
+        /* Areas */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Forms */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: white;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Mejora de legibilidad en dropdowns */
+        select option {
+            background-color: #1e293b;
+            color: white;
+        }
+
+        .image-upload {
+            border: 2px dashed var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .primary-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: filter 0.3s;
+        }
+
+        .primary-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .danger-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .danger-btn:hover {
+            background: #dc2626;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Search Table */
+        .table-wrapper {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            text-align: left;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .badge.entregado {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .badge.pendiente {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .btn-view-img {
+            color: var(--accent-primary);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        /* Modal simple para imagen */
+        #imgModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #imgModal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 0.5rem;
+        }
+
+        /* Auth */
+        #authOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div>
+            <h2>Navegación</h2>
+            <button class="nav-btn active" onclick="showSection('consulta', this)">
+                <span>🔍</span> Consulta Global
+            </button>
+            <button class="nav-btn" onclick="checkAuth('registro', this)">
+                <span>📝</span> Nuevo Registro
+            </button>
+        </div>
+        <div style="margin-top: auto;">
+            <p style="font-size: 0.7rem; color: var(--text-dim); text-align: center;">Unidad No. 4 Tipo Dos</p>
+        </div>
+    </aside>
+
+    <main>
+        <header class="top-header">
+            <div>
+                <h1>Entrega de Oficios y Notificaciones</h1>
+                <p>Unidad de Enjuiciamiento Numero 4 Tipo Dos</p>
+            </div>
+            <img src="Logo_PJ.png" alt="PJCDMX Logo"
+                style="height: 80px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));">
+        </header>
+
+        <!-- SECCIÓN CONSULTA -->
+        <section id="section-consulta" class="view-section active">
+
+            <div class="stats">
+                <div class="stat-card"><span>Total de Oficios y Notificaciones</span><strong id="totalCount">0</strong>
+                </div>
+                <div class="stat-card success"><span>Entregados</span><strong id="deliveredCount">0</strong></div>
+                <div class="stat-card warning"><span>Pendientes</span><strong id="pendingCount">0</strong></div>
+            </div>
+
+            <div class="glass-card" style="margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; min-width: 300px;">
+                        <label>Buscar registros</label>
+                        <input type="text" id="searchInput" placeholder="Carpeta, oficio, dependencia, remitente...">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label>Filtrar por Periodo</label>
+                        <select id="timeFilter" onchange="renderTable()">
+                            <option value="all">Todo el tiempo</option>
+                            <option value="today">Hoy</option>
+                            <option value="week">Esta Semana</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Carpeta</th>
+                            <th>Oficio</th>
+                            <th>Tipo</th>
+                            <th>Dependencia</th>
+                            <th>Remitente</th>
+                            <th>Recibido</th>
+                            <th>Entregado</th>
+                            <th>Quién Recibió</th>
+                            <th>Tramitador</th>
+                            <th>Estado</th>
+                            <th>Docs</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN REGISTRO -->
+        <section id="section-registro" class="view-section">
+            <!-- Buscador para Edición -->
+            <div class="glass-card"
+                style="margin-bottom: 1.5rem; border-color: var(--accent-primary); border-width: 2px;">
+                <h3 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent-primary);">🔍 BUSCAR PARA
+                    MODIFICAR</h3>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="editSearchInput"
+                        placeholder="Ingresa No. de Carpeta o de Oficio para buscar..." style="flex: 1;">
+                    <button class="primary-btn" onclick="searchForEdit()">Buscar Registro</button>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h2 id="formActionTitle"
+                    style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;"> 📝 Registro de Base
+                    de Datos</h2>
+                <form id="registerForm" class="form-grid">
+                    <input type="hidden" id="editIndex" value="-1">
+                    <div class="form-group">
+                        <label>Numero de Carpeta</label>
+                        <input type="text" id="regCarpeta" required placeholder="Ej: C-2024-45">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Documento</label>
+                        <select id="regTipoDoc" required>
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+                    <div class="form-group" id="groupOficio">
+                        <label>Numero de Oficio</label>
+                        <input type="text" id="regOficio" placeholder="Ej: OF-123">
+                    </div>
+                    <div class="form-group" id="groupInterno" style="display: none;">
+                        <label>Nombre del Interno</label>
+                        <input type="text" id="regNombreInterno" placeholder="Nombre completo del interno">
+                    </div>
+                    <div class="form-group">
+                        <label>Dependencia</label>
+                        <select id="regDependencia" required>
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Remitente</label>
+                        <select id="regRemitente" required>
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Recepción</label>
+                        <input type="date" id="regFechaRec" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Entrega (Si aplica)</label>
+                        <input type="date" id="regFechaEnt">
+                    </div>
+                    <div class="form-group">
+                        <label>Quién recibe acuse</label>
+                        <select id="regRecibeAcuse">
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quién hace trámite</label>
+                        <select id="regHaceTramite">
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Notas / Observaciones</label>
+                        <textarea id="regNotas" rows="2" placeholder="Detalles adicionales..."></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Foto de Acuse / Oficio Entregado</label>
+                        <div class="image-upload" onclick="document.getElementById('imgInput').click()">
+                            <p id="uploadLabel">Oprime aquí para subir o tomar foto</p>
+                            <input type="file" id="imgInput" accept="image/*" style="display: none">
+                            <img id="previewImg"
+                                style="display: none; max-width: 100px; margin-top: 1rem; border-radius: 0.5rem;">
+                        </div>
+                    </div>
+                    <div style="grid-column: span 2; margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button type="submit" id="submitBtn" class="primary-btn"
+                            style="flex: 2; min-width: 200px;">Guardar Registro Oficial</button>
+                        <button type="button" id="deleteBtn" class="danger-btn"
+                            style="flex: 1; display: none; min-width: 150px;" onclick="deleteRecord()">Eliminar
+                            Registro</button>
+                        <button type="button" id="cancelEditBtn" class="nav-btn"
+                            style="flex: 1; border: 1px solid var(--glass-border); display: none; min-width: 120px;"
+                            onclick="resetForm()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <div id="authOverlay">
+        <div class="glass-card" style="width: 350px;">
+            <h3 style="margin-bottom: 1rem;">🔐 Acceso Restringido</h3>
+            <div class="form-group">
+                <input type="password" id="adminPass" placeholder="Introducir Contraseña">
+            </div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                <button class="primary-btn" style="flex: 1;" onclick="validatePass()">Entrar</button>
+                <button class="nav-btn" style="border: 1px solid var(--glass-border);"
+                    onclick="closeAuth()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="imgModal" onclick="this.style.display='none'">
+        <img id="modalImg" src="">
+    </div>
+
+    <!-- Firebase SDK v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Configuración recibida del usuario
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7NpVlxEfM_AaLhUD_AeahxzhFcu1AAsQ",
+            authDomain: "dashboard-oficios.firebaseapp.com",
+            projectId: "dashboard-oficios",
+            storageBucket: "dashboard-oficios.firebasestorage.app",
+            messagingSenderId: "888114612594",
+            appId: "1:888114612594:web:c9f15503e30654bd2e35eb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db_fs = getFirestore(app);
+        const colRef = collection(db_fs, "oficios");
+
+        let db = []; // Memoria local sincronizada con Firestore
+        let currentPhoto = "";
+        let isAdmin = false;
+
+        // Manejo de Listas Dinámicas (Manteniendo localStorage para preferencias de interfaz locales)
+        const listsConfig = {
+            'regDependencia': {
+                storageKey: 'dependencias_list',
+                defaults: ["Reclusorio Sur", "Defensoria Publica Sur", "Fiscalia Sur"],
+                placeholder: "Seleccionar dependencia..."
+            },
+            'regTipoDoc': {
+                storageKey: 'tipodoc_list',
+                defaults: ["Oficio", "Notificación", "Notificación de Interno"],
+                placeholder: "Seleccionar tipo..."
+            },
+            'regRemitente': {
+                storageKey: 'remitentes_list',
+                defaults: ["Lic. Blanca", "Lic. America"],
+                placeholder: "Seleccionar remitente..."
+            },
+            'regRecibeAcuse': {
+                storageKey: 'receptores_list',
+                defaults: ["Lic. Blanca", "Lic. America"],
+                placeholder: "Seleccionar persona..."
+            },
+            'regHaceTramite': {
+                storageKey: 'tramitadores_list',
+                defaults: ["Lic. Victor Luna", "Lic. Hector", "Lic. Jorge Camacho"],
+                placeholder: "Seleccionar tramitador..."
+            }
+        };
+
+        function updateDynamicDropdown(id) {
+            const config = listsConfig[id];
+            const select = document.getElementById(id);
+            if (!select) return;
+
+            let items = JSON.parse(localStorage.getItem(config.storageKey)) || config.defaults;
+            const currentVal = select.value;
+
+            select.innerHTML = `<option value="">${config.placeholder}</option>`;
+
+            items.sort().forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = opt.textContent = item;
+                select.appendChild(opt);
+            });
+
+            const addOpt = document.createElement('option');
+            addOpt.value = "ADD_NEW";
+            addOpt.textContent = "➕ Agregar nuevo...";
+            select.appendChild(addOpt);
+
+            if (items.includes(currentVal)) select.value = currentVal;
+        }
+
+        function setupDynamicSelect(id) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            select.onchange = e => {
+                if (e.target.value === "ADD_NEW") {
+                    const newItem = prompt("Ingrese el nuevo nombre:");
+                    if (newItem && newItem.trim() !== "") {
+                        const config = listsConfig[id];
+                        let items = JSON.parse(localStorage.getItem(config.storageKey)) || config.defaults;
+
+                        if (!items.includes(newItem.trim())) {
+                            items.push(newItem.trim());
+                            localStorage.setItem(config.storageKey, JSON.stringify(items));
+                            updateDynamicDropdown(id);
+                            e.target.value = newItem.trim();
+                        } else {
+                            e.target.value = newItem.trim();
+                        }
+                    } else {
+                        e.target.value = "";
+                    }
+                }
+            };
+            updateDynamicDropdown(id);
+        }
+
+        // Inicializar todas las listas
+        Object.keys(listsConfig).forEach(id => setupDynamicSelect(id));
+
+        // Lógica condicional de campos
+        function handleTipoDocChange() {
+            const tipo = document.getElementById('regTipoDoc').value;
+            const groupOficio = document.getElementById('groupOficio');
+            const groupInterno = document.getElementById('groupInterno');
+
+            // Oficio: Muestra Oficio, Oculta Interno
+            if (tipo === "Oficio") {
+                groupOficio.style.display = 'block';
+                groupInterno.style.display = 'none';
+                document.getElementById('regOficio').required = true;
+                document.getElementById('regNombreInterno').required = false;
+            }
+            // Notificación de Interno: Oculta Oficio, Muestra Interno
+            else if (tipo === "Notificación de Interno") {
+                groupOficio.style.display = 'none';
+                groupInterno.style.display = 'block';
+                document.getElementById('regOficio').required = false;
+                document.getElementById('regNombreInterno').required = true;
+            }
+            // Notificación o cualquier otro: Oculta ambos
+            else {
+                groupOficio.style.display = 'none';
+                groupInterno.style.display = 'none';
+                document.getElementById('regOficio').required = false;
+                document.getElementById('regNombreInterno').required = false;
+            }
+        }
+
+        document.getElementById('regTipoDoc').addEventListener('change', handleTipoDocChange);
+
+        // Manejo de imagen
+        document.getElementById('imgInput').onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                currentPhoto = reader.result;
+                document.getElementById('previewImg').src = currentPhoto;
+                document.getElementById('previewImg').style.display = 'block';
+                document.getElementById('uploadLabel').textContent = "Imagen cargada lista";
+            }
+            if (file) reader.readAsDataURL(file);
+        };
+
+        function showSection(sectionId, btn) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+            btn.classList.add('active');
+            if (sectionId === 'consulta') renderTable();
+        }
+
+        function checkAuth(sectionId, btn) {
+            if (isAdmin) showSection(sectionId, btn);
+            else {
+                document.getElementById('authOverlay').style.display = 'flex';
+                window.pendingSection = { id: sectionId, btn: btn };
+            }
+        }
+
+        function validatePass() {
+            if (document.getElementById('adminPass').value === "jaco023") {
+                isAdmin = true;
+                closeAuth();
+                showSection(window.pendingSection.id, window.pendingSection.btn);
+            } else alert("Error de clave");
+        }
+
+        function closeAuth() { document.getElementById('authOverlay').style.display = 'none'; }
+
+        // Escucha en tiempo real de Firestore
+        onSnapshot(query(colRef, orderBy("fechaRec", "desc")), (snapshot) => {
+            db = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderTable();
+        });
+
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const timeFilter = document.getElementById('timeFilter').value;
+            const body = document.getElementById('tableBody');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            const dayOfWeek = now.getDay() || 7;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - (dayOfWeek - 1));
+            monday.setHours(0, 0, 0, 0);
+
+            const filtered = db.filter(item => {
+                const searchableFields = [item.carpeta, item.oficio, item.dependencia, item.remitente, item.notas, item.nombreInterno, item.haceTramite];
+                const matchesSearch = searchableFields.some(v => String(v || '').toLowerCase().includes(search));
+
+                let matchesTime = true;
+                if (timeFilter === 'today') {
+                    matchesTime = item.fechaRec === todayStr;
+                } else if (timeFilter === 'week') {
+                    const recDate = new Date(item.fechaRec + 'T00:00:00');
+                    matchesTime = recDate >= monday;
+                }
+                return matchesSearch && matchesTime;
+            });
+
+            filtered.forEach(item => {
+                const isEntregado = item.fechaEnt && item.foto;
+                const estado = isEntregado ? 'entregado' : 'pendiente';
+
+                body.innerHTML += `
+                <tr>
+                    <td><strong>${item.carpeta}</strong></td>
+                    <td>${item.oficio || '---'}</td>
+                    <td><span style="font-size: 0.75rem; color: var(--accent-primary); font-weight: 600;">${item.tipoDoc || 'Oficio'}</span></td>
+                    <td>${item.dependencia}</td>
+                    <td>${item.remitente}</td>
+                    <td style="color: var(--text-dim)">${item.fechaRec}</td>
+                    <td>${item.fechaEnt || '---'}</td>
+                    <td>${item.recibeAcuse || '---'}</td>
+                    <td>${item.haceTramite}</td>
+                    <td><span class="badge ${estado}">${estado.toUpperCase()}</span></td>
+                    <td>${item.foto ? `<span class="btn-view-img" onclick="window.showImg('${item.foto}')">Ver Acuse</span>` : '---'}</td>
+                </tr>
+                `;
+            });
+
+            document.getElementById('totalCount').textContent = filtered.length;
+            document.getElementById('deliveredCount').textContent = filtered.filter(i => i.fechaEnt && i.foto).length;
+            document.getElementById('pendingCount').textContent = filtered.filter(i => !(i.fechaEnt && i.foto)).length;
+        }
+        window.renderTable = renderTable;
+
+        function searchForEdit() {
+            const term = document.getElementById('editSearchInput').value.trim().toLowerCase();
+            if (!term) return alert("Ingresa un Número de Carpeta o de Oficio para buscar.");
+
+            const item = db.find(item =>
+                (item.carpeta && item.carpeta.toLowerCase() === term) ||
+                (item.oficio && item.oficio.toLowerCase() === term)
+            );
+
+            if (item) {
+                document.getElementById('editIndex').value = item.id; // Guardamos el ID de Firestore
+                document.getElementById('regCarpeta').value = item.carpeta;
+                document.getElementById('regTipoDoc').value = item.tipoDoc || "Oficio";
+                handleTipoDocChange();
+
+                document.getElementById('regOficio').value = item.oficio || "";
+                document.getElementById('regNombreInterno').value = item.nombreInterno || "";
+                document.getElementById('regDependencia').value = item.dependencia;
+                document.getElementById('regRemitente').value = item.remitente;
+                document.getElementById('regFechaRec').value = item.fechaRec;
+                document.getElementById('regFechaEnt').value = item.fechaEnt || "";
+                document.getElementById('regRecibeAcuse').value = item.recibeAcuse || "";
+                document.getElementById('regHaceTramite').value = item.haceTramite || "";
+                document.getElementById('regNotas').value = item.notas || "";
+
+                currentPhoto = item.foto || "";
+                if (currentPhoto) {
+                    document.getElementById('previewImg').src = currentPhoto;
+                    document.getElementById('previewImg').style.display = 'block';
+                    document.getElementById('uploadLabel').textContent = "Imagen cargada";
+                } else {
+                    document.getElementById('previewImg').style.display = 'none';
+                    document.getElementById('uploadLabel').textContent = "Oprime aquí para subir o tomar foto";
+                }
+
+                document.getElementById('formActionTitle').textContent = " ✏️ Modificando Registro";
+                document.getElementById('submitBtn').textContent = "Actualizar en la Nube";
+                document.getElementById('deleteBtn').style.display = 'block';
+                document.getElementById('cancelEditBtn').style.display = 'block';
+                alert("Registro cargado desde la nube.");
+            } else {
+                alert("No se encontró ningún registro.");
+            }
+        }
+        window.searchForEdit = searchForEdit;
+
+        function resetForm() {
+            document.getElementById('registerForm').reset();
+            handleTipoDocChange(); // Resetear visibilidad
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('formActionTitle').textContent = " 📝 Registro de Base de Datos";
+            document.getElementById('submitBtn').textContent = "Guardar Registro Oficial";
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('previewImg').style.display = 'none';
+            document.getElementById('uploadLabel').textContent = "Oprime aquí para subir o tomar foto";
+            currentPhoto = "";
+        }
+
+        async function deleteRecord() {
+            const id = document.getElementById('editIndex').value;
+            if (id === "-1") return;
+
+            if (confirm("¿ELIMINAR este registro de la NUBE permanentemente?")) {
+                try {
+                    await deleteDoc(doc(db_fs, "oficios", id));
+                    alert("🗑️ Eliminado de la base de datos.");
+                    resetForm();
+                } catch (e) { alert("Error al eliminar: " + e.message); }
+            }
+        }
+        window.deleteRecord = deleteRecord;
+
+        function showImg(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imgModal').style.display = 'flex';
+        }
+        window.showImg = showImg;
+
+        document.getElementById('registerForm').onsubmit = async e => {
+            e.preventDefault();
+            const id = document.getElementById('editIndex').value;
+
+            const data = {
+                carpeta: document.getElementById('regCarpeta').value,
+                tipoDoc: document.getElementById('regTipoDoc').value,
+                oficio: document.getElementById('regOficio').value,
+                nombreInterno: document.getElementById('regNombreInterno').value,
+                dependencia: document.getElementById('regDependencia').value,
+                remitente: document.getElementById('regRemitente').value,
+                fechaRec: document.getElementById('regFechaRec').value,
+                fechaEnt: document.getElementById('regFechaEnt').value,
+                recibeAcuse: document.getElementById('regRecibeAcuse').value,
+                haceTramite: document.getElementById('regHaceTramite').value,
+                notas: document.getElementById('regNotas').value,
+                foto: currentPhoto,
+                updatedAt: new Date()
+            };
+
+            try {
+                if (id === "-1") {
+                    await addDoc(colRef, data);
+                    alert("✅ Guardado en la Nube.");
+                } else {
+                    await updateDoc(doc(db_fs, "oficios", id), data);
+                    alert("✅ Actualizado en la Nube.");
+                }
+                resetForm();
+                showSection('consulta', document.querySelector('.nav-btn'));
+            } catch (e) { alert("Error: " + e.message); }
+        };
+
+        document.getElementById('searchInput').oninput = renderTable;
+
+        // Exportar funciones globales necesarias
+        window.showSection = showSection;
+        window.checkAuth = checkAuth;
+        window.validatePass = validatePass;
+        window.closeAuth = closeAuth;
+        window.resetForm = resetForm;
+        window.handleTipoDocChange = handleTipoDocChange;
+
+        // Limpieza de datos antiguos (Opcional: migrar una sola vez)
+        const localData = localStorage.getItem('oficios_db');
+        if (localData && confirm("He detectado datos en tu equipo. ¿Deseas subirlos todos a la NUBE ahora mismo?")) {
+            const parsed = JSON.parse(localData);
+            parsed.forEach(async item => {
+                await addDoc(colRef, item);
+            });
+            localStorage.removeItem('oficios_db');
+            alert("Migración completada. Los datos antiguos ya están en Google.");
+        }
+    </script>
+</body>
+
+</html>
