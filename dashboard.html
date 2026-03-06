@@ -815,11 +815,6 @@
 
         function closeAuth() { document.getElementById('authOverlay').style.display = 'none'; }
 
-        // Escucha en tiempo real de Firestore
-        onSnapshot(query(colRef, orderBy("fechaRec", "desc")), (snapshot) => {
-            db = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderTable();
-        });
 
         function renderTable() {
             const search = document.getElementById('searchInput').value.toLowerCase();
@@ -1039,6 +1034,31 @@
         window.closeAuth = closeAuth;
         window.resetForm = resetForm;
         window.handleTipoDocChange = handleTipoDocChange;
+
+        // Limpieza de Service Workers antiguos para evitar errores de cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // Inicialización segura
+        function init() {
+            renderTable();
+            // Escucha en tiempo real de Firestore
+            onSnapshot(query(colRef, orderBy("fechaRec", "desc")), (snapshot) => {
+                db = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTable();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
 
         // Limpieza de datos antiguos (Opcional: migrar una sola vez)
         const localData = localStorage.getItem('oficios_db');
